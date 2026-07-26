@@ -6,8 +6,6 @@ It cleans the rental dataset, stores the cleaned data, and shows the results in 
 
 The project uses Python, Pandas, SQL, PostgreSQL, Streamlit, and Plotly.
 
-It does not use AI or machine learning.
-
 ## Screenshots
 
 These screenshots show the current dashboard screens.
@@ -214,8 +212,6 @@ DB_PASSWORD=
 
 When the app starts, it creates a table called `rental_listings` and loads the cleaned data.
 
-If PostgreSQL is not ready, the app uses the cleaned CSV instead.
-
 ## Why Median Is Used
 
 Rent data has some very expensive homes.
@@ -229,6 +225,3 @@ Median rent gives a better picture of a normal listing.
 - Locality rankings use only localities with enough listings.
 - `area_rate` is checked, but `rent_per_sqft` is calculated again from rent and area.
 - PostgreSQL is used for SQL-based dashboard metrics.
-- No fake data is used.
-- No scraping is used.
-- No AI or machine learning is used.
