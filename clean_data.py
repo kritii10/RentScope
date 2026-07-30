@@ -19,28 +19,6 @@ CRITICAL_COLUMNS = [
 ]
 
 
-def inspect_dataset(df: pd.DataFrame) -> None:
-    print("Dataset inspection")
-    print("------------------")
-    print(f"Shape: {df.shape}")
-    print("\nColumn types:")
-    print(df.dtypes)
-    print("\nMissing values:")
-    print(df.isna().sum())
-    print("\nUnique city values:")
-    print(sorted(df["city"].dropna().astype(str).unique()))
-    print("\nFurnishing categories:")
-    print(df["furnishing"].value_counts(dropna=False))
-    print("\nBHK values:")
-    print(df["beds"].value_counts(dropna=False).sort_index())
-    print("\nTop locality values:")
-    print(df["locality"].value_counts(dropna=False).head(25))
-    print("\nRent distribution:")
-    print(df["rent"].describe(percentiles=[0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99]))
-    print("\nArea distribution:")
-    print(df["area"].describe(percentiles=[0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99]))
-
-
 def clean_text(value: object) -> str:
     return " ".join(str(value).strip().split())
 
@@ -74,8 +52,6 @@ def iqr_bounds(series: pd.Series, multiplier: float = 3.0) -> tuple[float, float
 def clean_bengaluru_rentals(raw_path: Path = RAW_DATA_PATH) -> tuple[pd.DataFrame, dict[str, int]]:
     df = pd.read_csv(raw_path)
     original_rows = len(df)
-
-    inspect_dataset(df)
 
     df.columns = [column.strip().lower() for column in df.columns]
     df["city_clean"] = df["city"].astype(str).str.strip().str.lower()
@@ -168,8 +144,6 @@ def main() -> None:
     for key, value in summary.items():
         print(f"{key.replace('_', ' ').title()}: {value}")
     print(f"\nSaved cleaned data to {CLEAN_DATA_PATH}")
-    print("\nRent per sq.ft. comparison:")
-    print(clean_df[["rent_per_sqft", "area_rate"]].describe().round(2))
 
 
 if __name__ == "__main__":

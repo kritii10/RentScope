@@ -1,44 +1,36 @@
 # RentScope
 
-RentScope is an end-to-end rental market analytics platform built for Bengaluru rental listings.
+RentScope is a Bengaluru rental market analytics project. It takes raw rental listings, cleans them with Pandas, stores the cleaned data in PostgreSQL, runs SQL analysis, and shows the results in a Streamlit dashboard with Plotly charts.
 
-The project cleans raw rental data, creates useful rental metrics, stores the cleaned data in PostgreSQL, runs SQL-based analysis, and presents the results through an interactive Streamlit dashboard with Plotly visualizations.
-
-The main objective is to turn raw rental records into clear insights about locality-wise, BHK-wise, and furnishing-wise rent patterns.
+The project is focused on descriptive analytics only.
 
 ---
 
 ## Project Overview
 
-RentScope follows a simple analytics workflow:
+RentScope answers simple rental market questions:
 
-```text
-Raw rental CSV
-    -> Data cleaning with Pandas
-    -> Feature engineering
-    -> PostgreSQL storage
-    -> SQL analysis
-    -> Streamlit dashboard
-    -> Plotly charts
-```
-
-The project focuses on descriptive analytics. It does not use artificial intelligence, machine learning, rent prediction, or recommendation models.
+- What is the typical rent in Bengaluru?
+- How does rent change by BHK?
+- Which localities are more expensive?
+- How does furnishing type affect rent?
+- Which localities have better rent per square foot?
 
 ---
 
 ## Key Features
 
-| Feature | Description |
+| Feature | What It Does |
 |---|---|
-| Data cleaning | Cleans raw rental listing data using Pandas |
-| Bengaluru filtering | Keeps only Bangalore/Bengaluru rental records |
-| Outlier handling | Removes suspicious rent-per-square-foot outliers using IQR |
+| Data cleaning | Cleans raw rental listings using Pandas |
+| Bengaluru filtering | Keeps only Bengaluru rental records |
+| Outlier handling | Removes unusual rent-per-square-foot values using IQR |
 | Rent per sq.ft. | Calculates `rent_per_sqft = rent / area` |
-| SQL analysis | Uses PostgreSQL queries for important dashboard metrics |
-| Locality comparison | Compares localities by median rent and rent per sq.ft. |
-| BHK analysis | Shows rental patterns across BHK categories |
-| Furnishing analysis | Compares rent across furnishing types |
-| Interactive dashboard | Provides filters, charts, metrics, and tables in Streamlit |
+| PostgreSQL storage | Stores cleaned listings in a database table |
+| SQL analysis | Uses SQL queries for dashboard metrics |
+| Locality analysis | Compares rent across localities |
+| BHK and furnishing analysis | Shows rent patterns by BHK and furnishing type |
+| Visualization mix | Uses a histogram, bar charts, a box plot, a grouped bar chart, and a pie chart |
 
 ---
 
@@ -59,13 +51,13 @@ The project focuses on descriptive analytics. It does not use artificial intelli
 
 ```mermaid
 flowchart LR
-    A["Raw rental CSV<br/>Multi-city listings"] --> B["Pandas cleaning<br/>Filter Bengaluru, remove invalid rows"]
-    B --> C["Feature engineering<br/>Calculate rent_per_sqft"]
-    C --> D["Clean CSV<br/>Bengaluru rentals"]
-    D --> E["PostgreSQL<br/>rental_listings table"]
-    E --> F["SQL analysis<br/>Median rent, BHK, locality metrics"]
-    F --> G["Streamlit dashboard<br/>Filters, metrics, tables"]
-    G --> H["Plotly charts<br/>Interactive visualizations"]
+    A["Raw CSV"] --> B["Pandas Cleaning"]
+    B --> C["Feature Engineering<br/>rent_per_sqft"]
+    C --> D["Clean CSV"]
+    D --> E["PostgreSQL<br/>rental_listings"]
+    E --> F["SQL Analysis"]
+    F --> G["Streamlit Dashboard"]
+    G --> H["Plotly Charts"]
 ```
 
 ---
@@ -87,30 +79,29 @@ RentScope/
 
 | File | Purpose |
 |---|---|
-| `clean_data.py` | Cleans the raw dataset and creates the cleaned Bengaluru CSV |
+| `clean_data.py` | Cleans the raw CSV and creates the cleaned Bengaluru dataset |
 | `analysis.py` | Contains reusable Pandas analysis functions |
-| `database.py` | Handles PostgreSQL connection, table creation, loading, and SQL queries |
+| `database.py` | Connects to PostgreSQL, creates the table, loads data, and runs SQL queries |
 | `app.py` | Builds the Streamlit dashboard |
-| `requirements.txt` | Lists Python dependencies |
-| `data/` | Stores raw and cleaned CSV files |
+| `requirements.txt` | Lists the Python packages needed to run the project |
+| `data/` | Stores the raw and cleaned CSV files |
 
 ---
 
 ## Dataset Description
 
-The raw dataset is stored at:
+The raw dataset is stored here:
 
 ```text
 data/cities_magicbricks_rental_prices.csv
 ```
 
-The dataset contains rental listings from multiple Indian cities. RentScope filters this data and analyzes only Bangalore/Bengaluru records.
+It contains rental listings from different Indian cities. RentScope filters this dataset and keeps only Bangalore/Bengaluru records.
 
-Main columns:
+Important columns:
 
 | Column | Meaning |
 |---|---|
-| `house_type` | Listing title or property type description |
 | `locality` | Area or locality name |
 | `city` | City name |
 | `area` | Property area in square feet |
@@ -118,8 +109,8 @@ Main columns:
 | `bathrooms` | Number of bathrooms |
 | `balconies` | Number of balconies |
 | `furnishing` | Furnishing status |
-| `area_rate` | Rent per area value provided in the dataset |
 | `rent` | Monthly rent |
+| `rent_per_sqft` | Rent divided by area, created during cleaning |
 
 Cleaned output:
 
@@ -127,105 +118,75 @@ Cleaned output:
 data/bengaluru_rentals_clean.csv
 ```
 
-Current cleaning result:
-
-| Stage | Records |
-|---|---:|
-| Raw dataset | 7,691 |
-| Bengaluru records | 1,790 |
-| Cleaned Bengaluru records | 1,744 |
-
 ---
 
-## Data Cleaning Pipeline
+## Data Cleaning Process
 
-Data cleaning is implemented in `clean_data.py`.
+Data cleaning happens in `clean_data.py`.
 
-The script performs the following steps:
-
-| Step | What Happens |
+| Step | Description |
 |---|---|
-| Dataset inspection | Checks shape, data types, missing values, city values, BHK values, rent, and area |
 | City filtering | Keeps only Bangalore/Bengaluru records |
-| Duplicate removal | Removes repeated rows |
-| Missing-value handling | Drops rows missing critical values |
-| Text standardization | Cleans locality, city, and furnishing values |
-| Numeric conversion | Converts rent, area, BHK, bathrooms, balconies, and area rate to numeric types |
+| Duplicate removal | Removes repeated listings |
+| Missing values | Drops rows missing important fields |
+| Type conversion | Converts rent, area, BHK, bathrooms, and balconies into numeric values |
+| Text cleaning | Standardizes locality and furnishing values |
 | Feature engineering | Creates `rent_per_sqft` |
-| Outlier handling | Uses IQR on `rent_per_sqft` to remove suspicious rows |
-| Output generation | Saves the cleaned CSV |
+| Outlier handling | Uses IQR to remove unusual rent-per-square-foot records |
 
-Main calculated field:
+Main formula:
 
 ```text
 rent_per_sqft = rent / area
 ```
 
-This metric helps compare rentals more fairly because monthly rent alone can be affected by property size.
-
 ---
 
-## Database Architecture
+## Database Layer
 
-PostgreSQL integration is implemented in `database.py`.
-
-The database table is:
+PostgreSQL is used to store the cleaned dataset in one table:
 
 ```text
 rental_listings
 ```
 
-The table stores cleaned Bengaluru rental records with fields such as:
+The database layer handles:
 
-| Field | Purpose |
+- connecting to PostgreSQL
+- creating the `rental_listings` table
+- loading the cleaned CSV
+- calculating market metrics with SQL
+- calculating locality metrics with SQL
+
+Main database functions:
+
+| Function | Purpose |
 |---|---|
-| `locality` | Used for locality-wise filtering and grouping |
-| `beds` | Used for BHK-wise filtering and analysis |
-| `furnishing` | Used for furnishing-wise comparison |
-| `area` | Used for area-based analysis |
-| `rent` | Main monthly rent value |
-| `rent_per_sqft` | Main normalized rent metric |
-
-The database layer keeps the logic simple:
-
-- connect to PostgreSQL
-- create the `rental_listings` table
-- load the cleaned CSV
-- run SQL aggregation queries
-- return data to the dashboard
-
-SQL is used for important metrics such as:
-
-- total listings
-- average rent
-- median rent
-- median rent per sq.ft.
-- locality-wise rental metrics
+| `get_connection()` | Opens a PostgreSQL connection |
+| `create_table()` | Creates the rental listings table |
+| `load_data()` | Loads the cleaned CSV into PostgreSQL |
+| `market_metrics()` | Returns overall market metrics |
+| `locality_metrics()` | Returns locality-wise metrics |
 
 ---
 
 ## Analysis Layer
 
-Reusable analysis functions are stored in `analysis.py`.
-
-This file keeps common Pandas logic separate from the dashboard.
+`analysis.py` contains simple Pandas functions used by the dashboard.
 
 | Function | Purpose |
 |---|---|
 | `load_clean_data()` | Loads the cleaned CSV |
-| `market_summary()` | Calculates overall market metrics |
+| `market_summary()` | Calculates overall market summary values |
 | `bhk_distribution()` | Groups listings by BHK |
-| `furnishing_distribution()` | Groups listings by furnishing status |
-| `locality_metrics()` | Calculates locality-wise metrics |
-| `comparable_properties()` | Compares an entered property with similar listings |
-
-This separation makes the project easier to explain and maintain.
+| `furnishing_distribution()` | Groups listings by furnishing type |
+| `locality_metrics()` | Calculates locality-wise values |
 
 ---
 
 ## Dashboard Pages
 
-The dashboard is implemented in `app.py` using Streamlit and Plotly.
+The dashboard has three pages.
 
 ### 1. Market Overview
 
@@ -235,59 +196,39 @@ Includes:
 
 - total listings
 - median rent
-- median rent per sq.ft.
-- localities covered
+- average rent
+- median rent per square foot
+- total localities
 - rent distribution
 - BHK distribution
-- top localities by median rent
-- top localities by rent per sq.ft.
-- furnishing analysis
 
 ### 2. Locality Explorer
 
-Allows users to select a locality and explore its rental listings.
+Lets the user select one locality and filter listings.
 
 Filters:
 
+- locality
 - BHK
 - furnishing type
-- rent range
 
 Charts:
 
-- median rent by BHK
 - median rent by furnishing
-- area vs rent scatter plot
+- rent distribution by BHK box plot
 
 ### 3. Compare Localities
 
-Allows comparison of 2 or 3 localities.
+Lets the user compare selected localities.
 
-Shows:
+Charts:
 
-- median rent
-- median rent per sq.ft.
-- listing count
-- BHK-wise comparison
-
-This page helps compare both price level and value by area.
-
-### 4. Value Explorer
-
-Allows the user to enter:
-
-- locality
-- BHK
-- monthly rent
-- property area
-
-The app compares the entered property with similar records from the same locality and BHK.
-
-This is a descriptive comparison only. It is not a rent prediction model.
+- grouped comparison of median rent, rent per square foot, and listing count
+- locality share pie chart
 
 ---
 
-## Installation Instructions
+## Installation
 
 Create and activate a virtual environment:
 
@@ -302,17 +243,11 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Clean the dataset:
-
-```bash
-python clean_data.py
-```
-
 ---
 
 ## Environment Variables
 
-Create a `.env` file in the project folder with your PostgreSQL details:
+Create a `.env` file in the project folder:
 
 ```text
 DB_HOST=localhost
@@ -322,25 +257,32 @@ DB_USER=your_postgres_user
 DB_PASSWORD=your_postgres_password
 ```
 
-Example database name:
-
-```text
-rentscope
-```
-
 ---
 
-## Running the Application
+## Running the Project
 
-Start the Streamlit dashboard:
+Clean the data:
+
+```bash
+python clean_data.py
+```
+
+Start Streamlit:
 
 ```bash
 streamlit run app.py
 ```
 
-Open the local app:
+Open:
 
 ```text
 http://localhost:8501
 ```
+
 ---
+
+## Interview Summary
+
+RentScope is an end-to-end data analytics project. I started with a raw rental CSV, cleaned it using Pandas, created a rent-per-square-foot feature, removed outliers using IQR, loaded the cleaned data into PostgreSQL, used SQL for market and locality metrics, and built an interactive Streamlit dashboard with Plotly charts.
+
+The project shows locality-wise, BHK-wise, and furnishing-wise rental patterns for Bengaluru.

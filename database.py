@@ -48,7 +48,7 @@ def create_table() -> None:
             cur.execute(sql)
 
 
-def load_clean_data_to_postgres(path: Path = CLEAN_DATA_PATH) -> int:
+def load_data(path: Path = CLEAN_DATA_PATH) -> int:
     df = pd.read_csv(path)
     rows = [
         (
@@ -80,21 +80,22 @@ def load_clean_data_to_postgres(path: Path = CLEAN_DATA_PATH) -> int:
             return len(rows)
 
 
-def market_kpis() -> pd.DataFrame:
+def market_metrics() -> pd.DataFrame:
     sql = """
     SELECT
         COUNT(*)::INT AS total_listings,
         COUNT(DISTINCT locality)::INT AS total_localities,
         AVG(rent)::FLOAT AS average_rent,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent)::FLOAT AS median_rent,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_sqft)::FLOAT AS median_rent_per_sqft,
-        AVG(area)::FLOAT AS average_area,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY area)::FLOAT AS median_area
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_sqft)::FLOAT AS median_rent_per_sqft
     FROM rental_listings
     WHERE city = 'Bengaluru';
     """
     with get_connection() as conn:
-        return pd.read_sql_query(sql, conn)
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            columns = [column.name for column in cur.description]
+            return pd.DataFrame(cur.fetchall(), columns=columns)
 
 
 def locality_metrics(min_listings: int = MIN_LOCALITY_LISTINGS) -> pd.DataFrame:
@@ -103,9 +104,7 @@ def locality_metrics(min_listings: int = MIN_LOCALITY_LISTINGS) -> pd.DataFrame:
         locality,
         COUNT(*)::INT AS listing_count,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent)::FLOAT AS median_rent,
-        AVG(rent)::FLOAT AS average_rent,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_sqft)::FLOAT AS median_rent_per_sqft,
-        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY area)::FLOAT AS median_area
+        PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_sqft)::FLOAT AS median_rent_per_sqft
     FROM rental_listings
     WHERE city = 'Bengaluru'
     GROUP BY locality
@@ -113,31 +112,7 @@ def locality_metrics(min_listings: int = MIN_LOCALITY_LISTINGS) -> pd.DataFrame:
     ORDER BY median_rent DESC;
     """
     with get_connection() as conn:
-        return pd.read_sql_query(sql, conn, params=(min_listings,))
-
-
-def listings(
-    locality: str | None = None,
-    beds: list[int] | None = None,
-) -> pd.DataFrame:
-    sql = """
-    SELECT
-        id, house_type, locality, city, area, beds, bathrooms, balconies,
-        furnishing, area_rate, rent, rent_per_sqft
-    FROM rental_listings
-    WHERE city = 'Bengaluru'
-    """
-    params: list[object] = []
-
-    if locality:
-        sql += " AND locality = %s"
-        params.append(locality)
-
-    if beds:
-        sql += " AND beds = ANY(%s)"
-        params.append(beds)
-
-    sql += " ORDER BY locality, beds, rent;"
-
-    with get_connection() as conn:
-        return pd.read_sql_query(sql, conn, params=tuple(params))
+        with conn.cursor() as cur:
+            cur.execute(sql, (min_listings,))
+            columns = [column.name for column in cur.description]
+            return pd.DataFrame(cur.fetchall(), columns=columns)
