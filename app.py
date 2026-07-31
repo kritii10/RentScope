@@ -25,8 +25,8 @@ def setup_database() -> None:
     database.load_data()
 
 
-def show_chart(fig, caption: str) -> None:
-    fig.update_layout(template="plotly_white", height=380)
+def show_chart(fig, caption: str, height: int = 380) -> None:
+    fig.update_layout(template="plotly_white", height=height)
     st.plotly_chart(fig, width="stretch")
     st.caption(caption)
 
@@ -50,19 +50,25 @@ def market_overview(df: pd.DataFrame, metrics: dict) -> None:
     c4.metric("Median Rent / sq.ft.", rate(metrics["median_rent_per_sqft"]))
     c5.metric("Total Localities", f"{metrics['total_localities']:,.0f}")
 
-    left, right = st.columns(2)
-    with left:
-        rent_data = df[df["rent"] <= df["rent"].quantile(0.98)]
-        fig = px.histogram(rent_data, x="rent", nbins=35, title="Rent Distribution")
-        fig.update_xaxes(title="Monthly rent", tickprefix="₹")
-        fig.update_yaxes(title="Listings")
-        show_chart(fig, "Shows how monthly rents are spread across Bengaluru listings.")
-    with right:
-        bhk = analysis.bhk_distribution(df)
-        fig = px.bar(bhk, x="beds", y="average_rent", title="Average Rent by BHK")
-        fig.update_xaxes(title="BHK")
-        fig.update_yaxes(title="Average rent", tickprefix="₹")
-        show_chart(fig, "Shows how the average monthly rent changes for each BHK type.")
+    rent_data = df[df["rent"] <= df["rent"].quantile(0.98)]
+    max_rent = int(rent_data["rent"].max())
+    tick_values = list(range(0, max_rent + 25000, 25000))
+    fig = px.histogram(rent_data, x="rent", title="Rent Distribution")
+    fig.update_traces(xbins=dict(start=0, end=max_rent + 10000, size=10000))
+    fig.update_xaxes(
+        title="Monthly rent",
+        tickprefix="₹",
+        tickformat=",",
+        tickvals=tick_values,
+    )
+    fig.update_yaxes(title="Listings")
+    show_chart(fig, "Shows how monthly rents are spread across Bengaluru listings.", height=430)
+
+    bhk = analysis.bhk_distribution(df)
+    fig = px.bar(bhk, x="beds", y="average_rent", title="Average Rent by BHK")
+    fig.update_xaxes(title="BHK")
+    fig.update_yaxes(title="Average rent", tickprefix="₹")
+    show_chart(fig, "Shows how the average monthly rent changes for each BHK type.")
 
 
 def locality_explorer(df: pd.DataFrame) -> None:

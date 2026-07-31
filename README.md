@@ -67,6 +67,7 @@ RentScope/
 ├── data/
 │   ├── cities_magicbricks_rental_prices.csv
 │   └── bengaluru_rentals_clean.csv
+├── screenshots/
 ├── clean_data.py
 ├── analysis.py
 ├── database.py
@@ -83,6 +84,7 @@ RentScope/
 | `app.py` | Builds the Streamlit dashboard |
 | `requirements.txt` | Lists the Python packages needed to run the project |
 | `data/` | Stores the raw and cleaned CSV files |
+| `screenshots/` | Stores dashboard screenshots used in this README |
 
 ---
 
@@ -159,6 +161,22 @@ Charts:
 - median rent comparison
 - average rent comparison
 - rent per square foot comparison
+
+---
+
+## Dashboard Screenshots
+
+### Market Overview
+
+![Market Overview](screenshots/market-overview.png)
+
+### Locality Explorer
+
+![Locality Explorer](screenshots/locality-explorer.png)
+
+### Compare Localities
+
+![Compare Localities](screenshots/compare-localities.png)
 
 ---
 
