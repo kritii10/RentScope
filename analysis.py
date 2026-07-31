@@ -31,6 +31,7 @@ def bhk_distribution(df: pd.DataFrame) -> pd.DataFrame:
         df.groupby("beds", as_index=False)
         .agg(
             listing_count=("rent", "size"),
+            average_rent=("rent", "mean"),
             median_rent=("rent", "median"),
             median_rent_per_sqft=("rent_per_sqft", "median"),
         )

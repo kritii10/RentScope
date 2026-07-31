@@ -25,9 +25,10 @@ def setup_database() -> None:
     database.load_data()
 
 
-def show_chart(fig) -> None:
+def show_chart(fig, caption: str) -> None:
     fig.update_layout(template="plotly_white", height=380)
     st.plotly_chart(fig, width="stretch")
+    st.caption(caption)
 
 
 def get_dashboard_data() -> tuple[pd.DataFrame, dict, pd.DataFrame]:
@@ -55,13 +56,13 @@ def market_overview(df: pd.DataFrame, metrics: dict) -> None:
         fig = px.histogram(rent_data, x="rent", nbins=35, title="Rent Distribution")
         fig.update_xaxes(title="Monthly rent", tickprefix="₹")
         fig.update_yaxes(title="Listings")
-        show_chart(fig)
+        show_chart(fig, "Shows how monthly rents are spread across Bengaluru listings.")
     with right:
         bhk = analysis.bhk_distribution(df)
-        fig = px.bar(bhk, x="beds", y="listing_count", title="BHK Distribution", text="listing_count")
+        fig = px.bar(bhk, x="beds", y="average_rent", title="Average Rent by BHK")
         fig.update_xaxes(title="BHK")
-        fig.update_yaxes(title="Listings")
-        show_chart(fig)
+        fig.update_yaxes(title="Average rent", tickprefix="₹")
+        show_chart(fig, "Shows how the average monthly rent changes for each BHK type.")
 
 
 def locality_explorer(df: pd.DataFrame) -> None:
@@ -92,27 +93,19 @@ def locality_explorer(df: pd.DataFrame) -> None:
         st.warning("No listings match these filters.")
         return
 
-    filtered["bhk_label"] = filtered["beds"].astype(int).astype(str) + " BHK"
-
     left, right = st.columns(2)
     with left:
         furnishing = analysis.furnishing_distribution(filtered)
         fig = px.bar(furnishing, x="furnishing", y="median_rent", title="Median Rent by Furnishing")
         fig.update_xaxes(title="Furnishing")
         fig.update_yaxes(title="Median rent", tickprefix="₹")
-        show_chart(fig)
+        show_chart(fig, "Shows how the median rent changes by furnishing type in the selected locality.")
     with right:
-        fig = px.box(
-            filtered,
-            x="bhk_label",
-            y="rent",
-            color="bhk_label",
-            points="outliers",
-            title="Rent Distribution by BHK",
-        )
+        bhk = analysis.bhk_distribution(filtered)
+        fig = px.line(bhk, x="beds", y="median_rent", markers=True, title="BHK versus Median Rent")
         fig.update_xaxes(title="BHK")
-        fig.update_yaxes(title="Monthly rent", tickprefix="₹")
-        show_chart(fig)
+        fig.update_yaxes(title="Median rent", tickprefix="₹")
+        show_chart(fig, "Shows how the typical rent changes as the BHK count increases.")
 
 
 def compare_localities(localities: pd.DataFrame) -> None:
@@ -127,39 +120,33 @@ def compare_localities(localities: pd.DataFrame) -> None:
         return
 
     selected_metrics = localities[localities["locality"].isin(selected)]
-    comparison = selected_metrics.rename(
-        columns={
-            "median_rent": "Median rent",
-            "median_rent_per_sqft": "Rent per sq.ft.",
-            "listing_count": "Listing count",
-        }
-    ).melt(
-        id_vars="locality",
-        value_vars=["Median rent", "Rent per sq.ft.", "Listing count"],
-        var_name="Metric",
-        value_name="Value",
-    )
 
-    fig = px.bar(
-        comparison,
-        x="locality",
-        y="Value",
-        color="Metric",
-        barmode="group",
-        title="Locality Comparison",
-    )
-    fig.update_xaxes(title="Locality")
-    fig.update_yaxes(title="Value")
-    show_chart(fig)
+    left, right = st.columns(2)
+    with left:
+        fig = px.bar(selected_metrics, x="locality", y="median_rent", title="Median Rent Comparison")
+        fig.update_traces(marker_color="#0f766e")
+        fig.update_xaxes(title="Locality")
+        fig.update_yaxes(title="Median rent", tickprefix="₹")
+        show_chart(fig, "Compares the typical monthly rent across the selected localities.")
+    with right:
+        fig = px.bar(selected_metrics, x="locality", y="average_rent", title="Average Rent Comparison")
+        fig.update_traces(marker_color="#2563eb")
+        fig.update_xaxes(title="Locality")
+        fig.update_yaxes(title="Average rent", tickprefix="₹")
+        show_chart(fig, "Compares the average monthly rent across the selected localities.")
 
-    fig = px.pie(
-        selected_metrics,
-        names="locality",
-        values="listing_count",
-        title="Locality Share",
-        hole=0.35,
-    )
-    show_chart(fig)
+    _, middle, _ = st.columns([1, 2, 1])
+    with middle:
+        fig = px.bar(
+            selected_metrics,
+            x="locality",
+            y="median_rent_per_sqft",
+            title="Rent per sq.ft. Comparison",
+        )
+        fig.update_traces(marker_color="#7c3aed")
+        fig.update_xaxes(title="Locality")
+        fig.update_yaxes(title="Median rent per sq.ft.")
+        show_chart(fig, "Compares rent after adjusting for property size.")
 
 
 def main() -> None:

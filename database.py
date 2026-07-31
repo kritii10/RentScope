@@ -103,6 +103,7 @@ def locality_metrics(min_listings: int = MIN_LOCALITY_LISTINGS) -> pd.DataFrame:
     SELECT
         locality,
         COUNT(*)::INT AS listing_count,
+        AVG(rent)::FLOAT AS average_rent,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent)::FLOAT AS median_rent,
         PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY rent_per_sqft)::FLOAT AS median_rent_per_sqft
     FROM rental_listings
