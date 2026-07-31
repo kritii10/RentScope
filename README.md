@@ -51,13 +51,11 @@ RentScope answers simple rental market questions:
 
 ```mermaid
 flowchart LR
-    A["Raw CSV"] --> B["Pandas Cleaning"]
-    B --> C["Feature Engineering<br/>rent_per_sqft"]
-    C --> D["Clean CSV"]
-    D --> E["PostgreSQL<br/>rental_listings"]
-    E --> F["SQL Analysis"]
-    F --> G["Streamlit Dashboard"]
-    G --> H["Plotly Charts"]
+    A["Raw CSV"] --> B["Clean Data"]
+    B --> C["PostgreSQL"]
+    C --> D["SQL Analysis"]
+    D --> E["Streamlit Dashboard"]
+    E --> F["Plotly Charts"]
 ```
 
 ---
