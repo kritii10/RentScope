@@ -14,7 +14,6 @@ RentScope answers simple rental market questions:
 - How does rent change by BHK?
 - Which localities are more expensive?
 - How does furnishing type affect rent?
-- Which localities have better rent per square foot?
 
 ---
 
@@ -25,7 +24,6 @@ RentScope answers simple rental market questions:
 | Data cleaning | Cleans raw rental listings using Pandas |
 | Bengaluru filtering | Keeps only Bengaluru rental records |
 | Outlier handling | Removes unusual rent-per-square-foot values using IQR |
-| Rent per sq.ft. | Calculates `rent_per_sqft = rent / area` |
 | PostgreSQL storage | Stores cleaned listings in a database table |
 | SQL analysis | Uses SQL queries for dashboard metrics |
 | Locality analysis | Compares rent across localities |
@@ -132,7 +130,6 @@ Includes:
 - total listings
 - median rent
 - average rent
-- median rent per square foot
 - total localities
 - rent distribution
 - average rent by BHK
@@ -158,9 +155,7 @@ Lets the user compare selected localities.
 
 Charts:
 
-- median rent comparison
 - average rent comparison
-- rent per square foot comparison
 
 ---
 

@@ -127,32 +127,11 @@ def compare_localities(localities: pd.DataFrame) -> None:
 
     selected_metrics = localities[localities["locality"].isin(selected)]
 
-    left, right = st.columns(2)
-    with left:
-        fig = px.bar(selected_metrics, x="locality", y="median_rent", title="Median Rent Comparison")
-        fig.update_traces(marker_color="#0f766e")
-        fig.update_xaxes(title="Locality")
-        fig.update_yaxes(title="Median rent", tickprefix="₹")
-        show_chart(fig, "Compares the typical monthly rent across the selected localities.")
-    with right:
-        fig = px.bar(selected_metrics, x="locality", y="average_rent", title="Average Rent Comparison")
-        fig.update_traces(marker_color="#2563eb")
-        fig.update_xaxes(title="Locality")
-        fig.update_yaxes(title="Average rent", tickprefix="₹")
-        show_chart(fig, "Compares the average monthly rent across the selected localities.")
-
-    _, middle, _ = st.columns([1, 2, 1])
-    with middle:
-        fig = px.bar(
-            selected_metrics,
-            x="locality",
-            y="median_rent_per_sqft",
-            title="Rent per sq.ft. Comparison",
-        )
-        fig.update_traces(marker_color="#7c3aed")
-        fig.update_xaxes(title="Locality")
-        fig.update_yaxes(title="Median rent per sq.ft.")
-        show_chart(fig, "Compares rent after adjusting for property size.")
+    fig = px.bar(selected_metrics, x="locality", y="average_rent", title="Average Rent Comparison")
+    fig.update_traces(marker_color="#2563eb")
+    fig.update_xaxes(title="Locality")
+    fig.update_yaxes(title="Average rent", tickprefix="₹")
+    show_chart(fig, "Compares the average monthly rent across the selected localities.")
 
 
 def main() -> None:
